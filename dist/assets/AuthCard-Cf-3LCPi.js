@@ -1,0 +1,1 @@
+import{j as s,M as e,B as n,P as r}from"./index-Dhb-fOBp.js";function o({children:x,...a}){return s.jsx(e,{sx:{maxWidth:{xs:400,md:480},margin:{xs:2.5,md:3},"& > *":{flexGrow:1,flexBasis:"50%"}},content:!1,...a,children:s.jsx(n,{sx:{p:{xs:2,sm:3,md:4,xl:5}},children:x})})}o.propTypes={children:r.any,other:r.any};export{o as A};

@@ -1,0 +1,1 @@
+function c(e){const n=e.toString();let t=n.match(/\d+/)===null?0:n.match(/\d+/)[0];const r=t.length;for(t=(parseInt(t)+1).toString();t.length<r;)t="0"+t;return n.replace(/[0-9]/g,"").concat(t)}export{c as i};
