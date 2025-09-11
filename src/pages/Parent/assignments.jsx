@@ -1,34 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Chip, IconButton, InputAdornment, Paper, ToggleButton, ToggleButtonGroup, Tooltip, useMediaQuery } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { IconButton, InputAdornment, Paper, ToggleButton, ToggleButtonGroup, Tooltip, useMediaQuery } from '@mui/material';
 import { FetchAllAssignments, FetchAssignmentDetails } from 'api/assignments';
 import { toast } from 'react-toastify';
 import {
-  Card,
-  CardContent,
   Typography,
   Box,
   Button,
   Grid,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  CircularProgress,
-  Divider,
   TextField
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import QuichLinks from 'components/QuickLinks';
-import SwitchButton from 'components/SwitchButton';
 import TablePagination from 'components/third-party/react-table/TablePagination';
 import SearchIcon from '@mui/icons-material/Search';
-import LogoImageLoader from 'components/PupilLoader';
-import { Stack } from '@mui/system';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import { Close } from '@mui/icons-material';
 import AssignmentDialog from './assignmentDialog';
+import ReactTable from 'components/reactTable';
+import { Eye } from 'iconsax-react';
 
 const subjectColors = {
   Rhymes: '#FF9A5A',
@@ -45,7 +34,6 @@ const subjectColors = {
 const Assignments = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  // State
   const [loading, setLoading] = useState(true);
   const [modalLoading, setModalLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
@@ -55,26 +43,19 @@ const Assignments = () => {
   const [searchText, setSearchText] = useState('');
   const [persistedSearchText, setPersistedSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState(searchText);
-
-  // Pagination state
+  const [rows, setRows] = useState([]);
+  const [loadingMap, setLoadingMap] = useState({});
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalPageCount, setTotalPageCount] = useState(0);
   const switchNames = 'fromAssignments';
 
-  // Fetch assignments
   const fetchAssignments = async () => {
     setLoading(true);
     try {
       const status = activeTab === 'ongoing' ? 'ongoing' : 'completed';
       const response = await FetchAllAssignments(pageIndex + 1, pageSize, debouncedSearchText.trim(), 'asc', status);
       let fetchedAssignments = response?.data?.data || [];
-      // if (searchText.trim()) {
-      //   fetchedAssignments = fetchedAssignments.filter((assignment) => {
-      //     const lowerSearch = searchText.toLowerCase();
-      //     return assignment.title.toLowerCase().includes(lowerSearch) || assignment.subject.name.toLowerCase().includes(lowerSearch);
-      //   });
-      // }
       if (debouncedSearchText.trim()) {
         fetchedAssignments = fetchedAssignments.filter((assignment) => {
           const lowerSearch = debouncedSearchText.toLowerCase();
@@ -91,7 +72,6 @@ const Assignments = () => {
       setLoading(false);
     }
   };
-  // Fetch assignment details
   const handleOpenModal = async (assignmentId, assignmentData) => {
     try {
       setModalLoading(true);
@@ -118,7 +98,7 @@ const Assignments = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchText(searchText);
-    }, 400); // debounce delay in ms
+    }, 400); 
 
     return () => clearTimeout(handler);
   }, [searchText]);
@@ -127,33 +107,18 @@ const Assignments = () => {
     fetchAssignments();
   }, [activeTab, pageIndex, pageSize, debouncedSearchText]);
 
-  // Download attachment
-  // const handleDownload = (url, title) => {
-  //   if (url) {
-  //     fetch(url)
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error('Failed to fetch the attachment');
-  //         }
-  //         return response.blob();
-  //       })
-  //       .then((blob) => {
-  //         const downloadUrl = window.URL.createObjectURL(blob);
-  //         const link = document.createElement('a');
-  //         link.href = downloadUrl;
-  //         link.download = title || 'attachment';
-  //         link.click();
-  //         window.URL.revokeObjectURL(downloadUrl);
-  //       })
-  //       .catch((error) => {
-  //         console.error('Download failed:', error);
-  //         toast.error('Failed to download attachment.');
-  //       });
-  //   } else {
-  //     toast.error('No attachment available.');
-  //   }
-  // };
-  // Single file download
+  useEffect(() => {
+    const formattedRows = assignments.map((assignment) => ({
+      id: assignment.id,
+      subject: assignment.subject.name,
+      title: assignment.title,
+      assigned_by: `${assignment.addedBy.user.firstName} ${assignment.addedBy.user.lastName}`,
+      assigned_on: new Date(assignment.addedBy.createdAt).toLocaleDateString(),
+      due_date: new Date(assignment.dueDate).toLocaleDateString(),
+      actions: assignment 
+    }));
+    setRows(formattedRows);
+  }, [assignments]);
 
   const handleDownload = async (url, title) => {
     if (!url) {
@@ -170,7 +135,7 @@ const Assignments = () => {
 
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = title || url.split('/').pop(); // 👈 forces "Save as..."
+      link.download = title || url.split('/').pop(); 
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -181,26 +146,6 @@ const Assignments = () => {
       toast.error('Failed to download attachment.');
     }
   };
-
-  // const handleBulkDownload = (urls, titlePrefix) => {
-  //   if (!urls) {
-  //     toast.error('No attachments available.');
-  //     return;
-  //   }
-
-  //   urls.split(',').forEach((url, i) => {
-  //     const fileName = url.split('/').pop();
-  //     const link = document.createElement('a');
-  //     link.href = url;
-  //     link.download = `${titlePrefix || 'Attachment'}-${i + 1}-${fileName}`;
-  //     link.target = '_blank';
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //   });
-  // };
-
-  // Multiple files download
 
   const handleBulkDownload = async (urls, titlePrefix) => {
     if (!urls) {
@@ -241,21 +186,96 @@ const Assignments = () => {
     setSearchText(value);
     setPersistedSearchText(value);
   };
-  if (loading) {
+
+
+  const columns = useMemo(
+    () => [
+      { header: 'Subject', accessorKey: 'subject' },
+      { header: 'Title',meta:{className:'cell-center'}, accessorKey: 'title' },
+      { header: 'Assigned By', accessorKey: 'assigned_by' },
+      { header: 'Assigned On', accessorKey: 'assigned_on' },
+      { header: 'Due date', accessorKey: 'due_date' },
+     {
+  header: () => <Box sx={{ width: '100%', textAlign: 'center' }}>Actions</Box>,
+  accessorKey: 'actions',
+  enableSorting: false,
+  meta: { className: 'cell-center' },
+
+  cell: ({ row }) => {
+    const assignment = row.original.actions;       
+    if (!assignment) return null;
+
     return (
-      <Box
-        sx={{
-          width: '100%',
-          height: '70vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      >
-        <LogoImageLoader />
+      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Tooltip title="Download" arrow>
+          <IconButton
+            aria-label="download assignment"
+            size="small"
+            color="primary"
+            onClick={(e) => {
+              e.stopPropagation();                   
+              handleDownload(assignment.attachmentUrl, assignment.title);
+            }}
+          >
+            <CloudDownloadIcon size="20" variant="Bold" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="View details" arrow>
+          <IconButton
+            aria-label="view assignment"
+            size="small"
+            color="primary"
+            onClick={(e) => {
+              e.stopPropagation();             
+              handleOpenModal(assignment.id, {
+                addedBy: `${assignment?.addedBy?.user?.firstName ?? ''} ${assignment?.addedBy?.user?.lastName ?? ''}`
+              });
+            }}
+          >
+            <Eye size="20" variant="Bold" />
+          </IconButton>
+        </Tooltip>
       </Box>
     );
   }
+}
+
+    ],
+    [loadingMap, handleDownload, handleOpenModal]
+  );
+  const assignedByOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((d) => d.assigned_by).filter(Boolean)))],
+    [rows]
+  );
+  const assignedOnOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((d) => d.assigned_on).filter(Boolean)))],
+    [rows]
+  );
+   const subjectOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((d) => d.subject).filter(Boolean)))],
+    [rows]
+  ); 
+  const titleOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((d) => d.title).filter(Boolean)))],
+    [rows]
+  );
+    const dueDateOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((d) => d.title).filter(Boolean)))],
+    [rows]
+  );
+  const filters = useMemo(
+    () => [
+      { type: 'global', key: 'q', placeholder: 'Search Assignments' },
+      { type: 'select', id: 'assignedBy', label: 'Assigned By', options: assignedByOptions, allToken: 'ALL' },
+      { type: 'select', id: 'assigned_on', label: 'Assigned On', options: assignedOnOptions, allToken: 'ALL' },
+      { type: 'select', id: 'subject', label: 'Subject', options: subjectOptions, allToken: 'ALL' },
+      { type: 'select', id: 'title', label: 'Title', options: titleOptions, allToken: 'ALL' },
+      { type: 'select', id: 'due_date', label: 'Due date', options: dueDateOptions, allToken: 'ALL' },
+      { type: 'sort' }
+    ],
+    [assignedByOptions, assignedOnOptions, subjectOptions, titleOptions, dueDateOptions]
+  );
   return (
     <div>
       <Paper
@@ -267,8 +287,7 @@ const Assignments = () => {
           backgroundColor: 'background.paper'
         }}
       >
-        <Grid container spacing={2} alignItems="center">
-          {/* Toggle Buttons */}
+        <Grid container spacing={2} alignItems="center" display={'block'}>
           <Grid item xs={12} md={6}>
             <ToggleButtonGroup
               value={activeTab}
@@ -310,174 +329,10 @@ const Assignments = () => {
               </ToggleButton>
             </ToggleButtonGroup>
           </Grid>
-
-          {/* Search and Create Button */}
-          <Grid item xs={12} md={6}>
-            <Grid container spacing={2} alignItems="center" justifyContent="flex-end">
-              <Grid item xs={12} sm="auto">
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  autoFocus
-                  value={persistedSearchText}
-                  onChange={handleSearchChange}
-                  placeholder="Search assignments..."
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: 'background.default',
-                      '&:hover': { backgroundColor: 'action.hover' }
-                    }
-                  }}
-                  sx={{
-                    minWidth: { xs: '100%', sm: 250 },
-                    '& .MuiOutlinedInput-root': {
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'primary.main'
-                      }
-                    }
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm="auto"></Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {assignments.length > 0 ? (
-        <>
-          <Grid container spacing={3}>
-            {assignments.map((assignment) => {
-              const subjectColor = subjectColors[assignment.subject.name];
-
-              return (
-                <Grid item xs={12} sm={6} md={4} key={assignment.id}>
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      p: 3,
-                      position: 'relative'
-                    }}
-                  >
-                    {/* Subject Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        px: 2,
-                        py: 0.5,
-                        backgroundColor: subjectColor,
-                        borderRadius: '20px',
-                        fontWeight: 'bold',
-                        fontSize: '0.85rem',
-                        color: '#fff'
-                      }}
-                    >
-                      {assignment.subject.name}
-                    </Box>
-
-                    <CardContent sx={{ p: 0, flexGrow: 1 }}>
-                      {/* Title */}
-                      <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        gutterBottom
-                        sx={{ mb: 1, overflowWrap: 'break-word', wordBreak: 'break-word' }}
-                      >
-                        {truncateText(assignment.title, 40)}
-                      </Typography>
-
-                      {/* Assigned by */}
-                      <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 0.5 }}>
-                        Assigned by: {`${assignment.addedBy.user.firstName} ${assignment.addedBy.user.lastName}`}
-                      </Typography>
-
-                      {/* Assigned On */}
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Assigned On: {new Date(assignment.addedBy.createdAt).toLocaleDateString()}
-                      </Typography>
-
-                      {/* Description */}
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontSize: '0.95rem',
-                          textAlign: 'justify',
-                          mb: 2,
-                          minHeight: '50px'
-                        }}
-                      >
-                        {truncateText(assignment.description, 95)}
-                      </Typography>
-
-                      {/* Due Date */}
-                      <Typography
-                        variant="body2"
-                        color={new Date(assignment.dueDate) < new Date() ? 'error.main' : 'text.secondary'}
-                        sx={{ fontWeight: 500 }}
-                      >
-                        Due Date: {new Date(assignment.dueDate).toLocaleDateString()}
-                      </Typography>
-                    </CardContent>
-
-                    {/* Buttons */}
-                    <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end" flexWrap="wrap">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<CloudDownloadIcon />}
-                        onClick={() => handleDownload(assignment.attachmentUrl, assignment.title)}
-                        sx={{ fontWeight: 'bold', textTransform: 'none' }}
-                      >
-                        Download
-                      </Button>
-
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        onClick={() =>
-                          handleOpenModal(assignment.id, {
-                            addedBy: `${assignment.addedBy.user.firstName} ${assignment.addedBy.user.lastName}`
-                          })
-                        }
-                        sx={{ textTransform: 'none' }}
-                      >
-                        View More
-                      </Button>
-                    </Stack>
-                  </Card>
-                </Grid>
-              );
-            })}
-          </Grid>
-          {assignments.length > 10 && (
-            <Box mt={3}>
-              <TablePagination
-                getPageCount={() => Math.ceil(totalPageCount)}
-                setPageIndex={setPageIndex}
-                setPageSize={(newSize) => {
-                  setPageSize(newSize);
-                }}
-                getState={() => ({ pagination: { pageIndex, pageSize } })}
-                initialPageSize={pageSize}
-                labelRowsPerPage="Assignments Per Page"
-              />
-            </Box>
-          )}
-        </>
+               {assignments.length > 0 ? (
+                <Grid item xs={12} md={12} sx={{ mt: { xs: 2, md: 0 } }}>
+        <ReactTable data={rows} columns={columns} loading={loading} filters={filters}/></Grid>
+      
       ) : (
         <Box>
           <Typography textAlign="center" mt={3}>
@@ -499,6 +354,10 @@ const Assignments = () => {
           )}
         </Box>
       )}
+        </Grid>
+      </Paper>
+
+ 
 
       <AssignmentDialog
         openModal={openModal}
