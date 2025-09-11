@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -33,8 +33,16 @@ import SearchBar from 'components/SearchBar';
 import LogoImageLoader from 'components/pupilLoader';
 export default function ReactTable({ columns, data, loading, filters = [] }) {
   const matchDownSM = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+  const [sorting, setSorting] = useState([]);
+  useEffect(() => {
+    const hasCreatedAt =
+      Array.isArray(columns) &&
+      columns.some((c) => c?.accessorKey === 'createdAt' || c?.id === 'createdAt');
+    if (hasCreatedAt && sorting.length === 0) {
+      setSorting([{ id: 'createdAt', desc: true }]);
+    }
+  }, [columns]);
 
-  const [sorting, setSorting] = useState([{ id: 'createdAt', desc: true }]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -155,7 +163,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
         case 'select':
           return (
             <FieldItem key={f.id}>
-              <FormControl size="medium" fullWidth sx={{ '& .MuiInputBase-root': { height: 48 } }}>
+              <FormControl size="medium" fullWidth sx={{ '& .MuiInputBase-root': { height: 40 } }}>
                 <InputLabel id={`${f.id}-label`}>{f.label}</InputLabel>
                 <Select
                   labelId={`${f.id}-label`}
@@ -196,7 +204,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
                   label={`${f.label} min`}
                   value={filterMap[f.id]?.min ?? ''}
                   onChange={(e) => upsertColumnFilter(f.id, { ...(filterMap[f.id] || {}), min: e.target.value })}
-                  sx={{ '& .MuiInputBase-root': { height: 48 } }}
+                  sx={{ '& .MuiInputBase-root': { height: 40} }}
                 />
                 <TextField
                   size="medium"
@@ -205,7 +213,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
                   label={`${f.label} max`}
                   value={filterMap[f.id]?.max ?? ''}
                   onChange={(e) => upsertColumnFilter(f.id, { ...(filterMap[f.id] || {}), max: e.target.value })}
-                  sx={{ '& .MuiInputBase-root': { height: 48 } }}
+                  sx={{ '& .MuiInputBase-root': { height: 40 } }}
                 />
               </Stack>
             </FieldItem>
@@ -223,7 +231,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
                   InputLabelProps={{ shrink: true }}
                   value={filterMap[f.id]?.from ?? ''}
                   onChange={(e) => upsertColumnFilter(f.id, { ...(filterMap[f.id] || {}), from: e.target.value })}
-                  sx={{ '& .MuiInputBase-root': { height: 48 } }}
+                  sx={{ '& .MuiInputBase-root': { height: 40 } }}
                 />
                 <TextField
                   size="medium"
@@ -233,7 +241,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
                   InputLabelProps={{ shrink: true }}
                   value={filterMap[f.id]?.to ?? ''}
                   onChange={(e) => upsertColumnFilter(f.id, { ...(filterMap[f.id] || {}), to: e.target.value })}
-                  sx={{ '& .MuiInputBase-root': { height: 48 } }}
+                  sx={{ '& .MuiInputBase-root': { height: 40 } }}
                 />
               </Stack>
             </FieldItem>
@@ -262,7 +270,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
           {inlineNonGlobals.map(Control)}
           {isMobile && (
             <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
-              <Box sx={{ flex: 1}} >{SortControl}</Box>
+              <Box sx={{ flex: 1 }} >{SortControl}</Box>
               <Box sx={{ flex: 1 }}>
                 <Button
                   fullWidth
