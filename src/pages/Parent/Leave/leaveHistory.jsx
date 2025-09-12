@@ -19,7 +19,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
-import {getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import MainCard from 'components/MainCard';
 import LogoImageLoader from 'components/pupilLoader';
 import { TablePagination } from 'components/third-party/react-table';
@@ -75,7 +75,7 @@ export default function DenseTable() {
   };
   const closeReasonDialog = () => setReasonOpen(false);
 
-  const toNumber = (val,fallback) => {
+  const toNumber = (val, fallback) => {
     const n = typeof val === 'string' ? Number(val) : val;
     return Number.isFinite(n) ? n : fallback;
   };
@@ -199,130 +199,56 @@ export default function DenseTable() {
       </Stack>
     );
   };
-  // const columns = useMemo(
-  //   () => [
-  //     {
-  //       header: <SortHeader label="Applied On" accessor="appliedOn" />,
-  //       accessorKey: 'appliedOn',
-  //       enableSorting: false 
-  //     },
-  //     {
-  //       header: <SortHeader label="Applied From" accessor="appliedFrom" />,
-  //       accessorKey: 'appliedFrom',
-  //       enableSorting: false
-  //     },
-  //     {
-  //       header: <SortHeader label="Applied To" accessor="appliedTo" />,
-  //       accessorKey: 'appliedTo',
-  //       enableSorting: false
-  //     },
-  //     {
-  //       header: 'Leave Type',
-  //       accessorKey: 'leaveType',
-  //       enableSorting: false
-  //     },
-  //     {
-  //       header: <SortHeader label="Action Taken On" accessor="actionedOn" />,
-  //       accessorKey: 'actionedOn',
-  //       enableSorting: false,
-  //       cell: (props) => props.getValue() || '—'
-  //     },
-  //     {
-  //       header: 'Action Taken By',
-  //       accessorKey: 'actionedBy',
-  //       enableSorting: false,
-  //       cell: (props) => props.getValue() || '—'
-  //     },
-  //     {
-  //       header: 'Reason',
-  //       accessorKey: 'reason',
-  //       enableSorting: false,
-  //       cell: (props) => {
-  //         const reason = props.getValue();
-  //         if (!reason) return '—';
-  //         return (
-  //           <Button
-  //             variant="text"
-  //             size="small"
-  //             onClick={() => openReasonDialog(reason)}
-  //             sx={{ textTransform: 'none', padding: '2px 6px', minWidth: 0 }}
-  //           >
-  //             <Tooltip title="Click to view full reason" arrow>
-  //               See Reason
-  //             </Tooltip>
-  //           </Button>
-  //         );
-  //       }
-  //     },
-  //     {
-  //       header: 'Status',
-  //       accessorKey: 'status',
-  //       enableSorting: false,
-  //       cell: (props) => {
-  //         const val = props.getValue();
-  //         const color = val === 'APPROVED' ? 'success' : val === 'REJECTED' ? 'error' : 'info';
-  //         return <Chip color={color} label={val} size="small" variant="light" />;
-  //       }
-  //     },
-  //     {
-  //       header: 'Actions',
-  //       accessorKey: 'actions',
-  //       enableSorting: false,
-  //       cell: ({ row }) => {
-  //         const isDisabled = row.original.status === 'APPROVED' || row.original.status === 'REJECTED';
-  //         return (
-  //           <Button size="small" variant="outlined" onClick={() => handleEdit(row.original)} disabled={isDisabled}>
-  //             Edit
-  //           </Button>
-  //         );
-  //       }
-  //     }
-  //   ],
-  //   [orderBy, sortOrder]
-  // );
 
   const columns = useMemo(
-  () => [
-    { header: <SortHeader label="Applied On" accessor="appliedOn" />, accessorKey: 'appliedOn', enableSorting: true },
-    { header: <SortHeader label="Applied From" accessor="appliedFrom" />, accessorKey: 'appliedFrom', enableSorting: true },
-    { header: <SortHeader label="Applied To" accessor="appliedTo" />, accessorKey: 'appliedTo', enableSorting: true },
-    { header: 'Leave Type', accessorKey: 'leaveType', enableSorting: true },
+    () => [
+      { header: <SortHeader label="Applied On" accessor="appliedOn" />, accessorKey: 'appliedOn', enableSorting: true },
+      { header: <SortHeader label="Applied From" accessor="appliedFrom" />, accessorKey: 'appliedFrom', enableSorting: true },
+      { header: <SortHeader label="Applied To" accessor="appliedTo" />, accessorKey: 'appliedTo', enableSorting: true },
+      { header: 'Leave Type', accessorKey: 'leaveType', enableSorting: true },
 
-    { header: <SortHeader label="Action Taken On" accessor="actionedOn" />, accessorKey: 'actionedOn', enableSorting: true,
-      cell: (props) => props.getValue() || '—' },
+      {
+        header: <SortHeader label="Action Taken On" accessor="actionedOn" />, accessorKey: 'actionedOn', enableSorting: true,
+        cell: (props) => props.getValue() || '—'
+      },
 
-    { header: 'Action Taken By', accessorKey: 'actionedBy', enableSorting: true,
-      cell: (props) => props.getValue() || '—' },
+      {
+        header: 'Action Taken By', accessorKey: 'actionedBy', enableSorting: true,
+        cell: (props) => props.getValue() || '—'
+      },
 
-    { header: 'Reason', accessorKey: 'reason', enableSorting: false,
-      cell: (props) => {
-        const reason = props.getValue();
-        if (!reason) return '—';
-        return (
-          <Button variant="text" size="small" onClick={() => openReasonDialog(reason)} sx={{ textTransform: 'none', p: '2px 6px', minWidth: 0 }}>
-            <Tooltip title="Click to view full reason" arrow>See Reason</Tooltip>
-          </Button>
-        );
+      {
+        header: 'Reason', accessorKey: 'reason', enableSorting: false,
+        cell: (props) => {
+          const reason = props.getValue();
+          if (!reason) return '—';
+          return (
+            <Button variant="text" size="small" onClick={() => openReasonDialog(reason)} sx={{ textTransform: 'none', p: '2px 6px', minWidth: 0 }}>
+              <Tooltip title="Click to view full reason" arrow>See Reason</Tooltip>
+            </Button>
+          );
+        }
+      },
+
+      {
+        header: 'Status', accessorKey: 'status', enableSorting: true,
+        cell: (props) => {
+          const val = props.getValue();
+          const color = val === 'APPROVED' ? 'success' : val === 'REJECTED' ? 'error' : 'info';
+          return <Chip color={color} label={val} size="small" variant="light" />;
+        }
+      },
+
+      {
+        header: 'Actions', accessorKey: 'actions', enableSorting: false,
+        cell: ({ row }) => {
+          const isDisabled = row.original.status === 'APPROVED' || row.original.status === 'REJECTED';
+          return <Button size="small" variant="outlined" onClick={() => handleEdit(row.original)} disabled={isDisabled}>Edit</Button>;
+        }
       }
-    },
-
-    { header: 'Status', accessorKey: 'status', enableSorting: true,
-      cell: (props) => {
-        const val = props.getValue();
-        const color = val === 'APPROVED' ? 'success' : val === 'REJECTED' ? 'error' : 'info';
-        return <Chip color={color} label={val} size="small" variant="light" />;
-      }
-    },
-
-    { header: 'Actions', accessorKey: 'actions', enableSorting: false,
-      cell: ({ row }) => {
-        const isDisabled = row.original.status === 'APPROVED' || row.original.status === 'REJECTED';
-        return <Button size="small" variant="outlined" onClick={() => handleEdit(row.original)} disabled={isDisabled}>Edit</Button>;
-      }
-    }
-  ],
-  [orderBy, sortOrder]
-);
+    ],
+    [orderBy, sortOrder]
+  );
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -342,6 +268,7 @@ export default function DenseTable() {
         </Box>
       );
     }
+
 
     return (
       <Stack spacing={2} sx={{ p: 2 }}>
@@ -395,6 +322,20 @@ export default function DenseTable() {
   };
 
   const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
+  const statusOptions = useMemo(
+    () => Array.from(new Set((data || []).map((r) => r.status).filter(Boolean))),
+    [data]
+  );
+
+  const leaveTypeOptions = useMemo(
+    () => Array.from(new Set((data || []).map((r) => r.leaveType).filter(Boolean))),
+    [data]
+  );
+  const filters = [
+    { type: 'global', key: 'q', placeholder: 'Search leave history…' },
+    { type: 'select', id: 'status', label: 'Status', options: statusOptions, allToken: '' },
+    { type: 'select', id: 'leaveType', label: 'Leave Type', options: leaveTypeOptions, allToken: '' }
+  ]
 
   return (
     <>
@@ -415,12 +356,14 @@ export default function DenseTable() {
           {renderMobileCards()}
         </MainCard>
       ) : (
+
         <ReactTable
           data={data}
           columns={columns}
           loading={loading}
-          filters={[]}
+          filters={filters}
         />
+
       )}
 
       {isMobile && (

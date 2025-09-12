@@ -277,7 +277,7 @@ export default function ReactTable({ columns, data, loading, filters = [] }) {
                   variant="outlined"
                   startIcon={<FilterListIcon />}
                   onClick={() => setDrawerOpen(true)}
-                  sx={{ height: 48, whiteSpace: 'nowrap' }}
+                  sx={{ height: 40, whiteSpace: 'nowrap' }}
                   aria-haspopup="dialog"
                   aria-expanded={drawerOpen ? 'true' : 'false'}
                 >

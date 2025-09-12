@@ -23,7 +23,7 @@ const MenuProps = {
 
 export default function SelectColumnSorting({ getState, getAllColumns, setSorting, size = 'medium' }) {
   return (
-    <FormControl sx={{ width: 200 }}>
+    <FormControl sx={{ width: 170 }}>
       <Select
         id="column-sorting"
         multiple
