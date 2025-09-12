@@ -329,16 +329,11 @@ const Assignments = () => {
               </ToggleButton>
             </ToggleButtonGroup>
           </Grid>
-               {assignments.length > 0 ? (
                 <Grid item xs={12} md={12} sx={{ mt: { xs: 2, md: 0 } }}>
         <ReactTable data={rows} columns={columns} loading={loading} filters={filters}/></Grid>
       
-      ) : (
-        <Box>
-          <Typography textAlign="center" mt={3}>
-            No assignments found.
-          </Typography>
-          {assignments.length > 10 && (
+   
+       {assignments.length > 10 && (
             <Box mt={3}>
               <TablePagination
                 getPageCount={() => Math.ceil(totalPageCount)}
@@ -352,8 +347,6 @@ const Assignments = () => {
               />
             </Box>
           )}
-        </Box>
-      )}
         </Grid>
       </Paper>
 

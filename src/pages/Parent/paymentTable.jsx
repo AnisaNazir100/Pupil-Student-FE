@@ -1,93 +1,103 @@
-import React, { useState, useEffect } from 'react';
-import { Paper, Table, TableBody, TableContainer, TableCell, TableHead, TableRow, Stack, Box } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Paper } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { CSVExport, DebouncedInput, EmptyTable, TablePagination } from 'components/third-party/react-table';
-import { useReactTable, getCoreRowModel, getFilteredRowModel, flexRender } from '@tanstack/react-table';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { FetchPaymentDetails } from 'api/allPayments';
 import LogoImageLoader from 'components/PupilLoader';
+import ReactTable from 'components/reactTable';
 
 const PaymentTable = () => {
-  const [paymentDetails, setPaymentDetails] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [totalRows, setTotalRows] = useState(0);
-
-  // Pagination state
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const fetchPaymentData = async () => {
-    setLoading(true);
-    try {
-      const id = sessionStorage.getItem('studentId');
-      if (!id) throw new Error('No student ID found.');
-
-      const data = await FetchPaymentDetails(id, pageIndex + 1, pageSize, globalFilter);
-      setPaymentDetails(data.data || []);
-      setTotalRows(data?.meta?.pageCount);
-    } catch (error) {
-      console.error('Error fetching payment details:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [payments, setPayments] = useState([]);
+    const [pageSize, setPageSize] = useState(10);
+    const [pageIndex, setPageIndex] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchPaymentData();
-  }, [pageIndex, pageSize, globalFilter]);
+    (async () => {
+      try {
+        setLoading(true);
+        const id = sessionStorage.getItem('studentId');
+        if (!id) throw new Error('No student ID found.');
 
-  const columns = React.useMemo(
+        const resp = await FetchPaymentDetails(id, pageIndex+1, pageSize,searchQuery);
+        const list = Array.isArray(resp?.data) ? resp.data : [];
+
+        setPayments(list);
+      } catch (e) {
+        console.error('Error fetching payment details:', e);
+        setPayments([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const rows = useMemo(
+    () =>
+      payments.map((p) => ({
+        id: p.id || `${p.createdAt}-${p.amountPaid}`,
+        createdAt: p.createdAt, 
+        amountPaid: Number(p.amountPaid ?? 0),
+        amountDue: Number(p.amountDue ?? 0),
+        balance: Number(p.balance ?? 0),
+        mode: p.mode ?? '',
+        remarks: p.remarks ?? ''
+      })),
+    [payments]
+  );
+
+  const columns = useMemo(
     () => [
       {
-        accessorKey: 'createdAt',
         header: 'Date',
-        cell: (info) => new Date(info.getValue()).toLocaleDateString()
+        accessorKey: 'createdAt',
+        cell: ({ getValue }) => {
+          const v = getValue();
+          const d = v ? new Date(v) : null;
+          return d ? d.toLocaleDateString() : '-';
+        }
       },
       {
-        accessorKey: 'amountPaid',
         header: 'Amount Paid',
-        cell: (info) => `₹${info.getValue()}`
+        accessorKey: 'amountPaid',
+        meta: { className: 'cell-right' },
+        cell: ({ getValue }) => `₹${Number(getValue() ?? 0).toLocaleString()}`
       },
       {
-        accessorKey: 'amountDue',
         header: 'Amount Due',
-        cell: (info) => `₹${info.getValue()}`
+        accessorKey: 'amountDue',
+        meta: { className: 'cell-right' },
+        cell: ({ getValue }) => `₹${Number(getValue() ?? 0).toLocaleString()}`
       },
       {
-        accessorKey: 'balance',
         header: 'Balance',
-        cell: (info) => `₹${info.getValue()}`
+        accessorKey: 'balance',
+        meta: { className: 'cell-right' },
+        cell: ({ getValue }) => `₹${Number(getValue() ?? 0).toLocaleString()}`
       },
-      {
-        accessorKey: 'mode',
-        header: 'Mode'
-      },
-      {
-        accessorKey: 'remarks',
-        header: 'Remarks'
-      }
+      { header: 'Mode', accessorKey: 'mode' },
+      { header: 'Remarks', accessorKey: 'remarks' }
     ],
     []
   );
 
-  const table = useReactTable({
-    data: paymentDetails,
-    columns,
-    state: { globalFilter, pagination: { pageIndex, pageSize } },
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: 'fuzzy', // Replace with your filter function
-    manualPagination: true, // Enable server-side pagination
-    pageCount: Math.ceil(totalRows / pageSize)
-  });
+  const modeOptions = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map((r) => r.mode).filter(Boolean)))],
+    [rows]
+  );
 
-  const headers = columns.map((col) => ({
-    label: col.header,
-    key: col.accessorKey
-  }));
+  const filters = useMemo(
+    () => [
+      { type: 'global', key: 'q', placeholder: 'Search payments' },
+      { type: 'select', id: 'mode', label: 'Mode', options: modeOptions, allToken: 'ALL' }
+    ],
+    [modeOptions]
+  );
+
   if (loading) {
     return (
       <Box
@@ -105,69 +115,8 @@ const PaymentTable = () => {
   }
 
   return (
-    <Paper>
-      <Stack mt={3} direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ padding: 2 }}>
-        <Box sx={{ width: { xs: '100%', sm: '30%' } }}>
-          <DebouncedInput
-            value={globalFilter ?? ''}
-            onFilterChange={(value) => setGlobalFilter(String(value))}
-            placeholder={`Search ${totalRows} records...`}
-            style={{ width: '100%' }}
-          />
-        </Box>
-
-        <CSVExport data={table.getRowModel().rows.map((row) => row.original)} headers={headers} filename="payments.csv" />
-      </Stack>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableCell key={header.id}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  Loading payment details...
-                </TableCell>
-              </TableRow>
-            ) : paymentDetails.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length}>
-                  <EmptyTable msg="No Payment Details Available" />
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Box sx={{ p: 2 }}>
-        <TablePagination
-          getPageCount={() => Math.ceil(totalRows)}
-          setPageIndex={setPageIndex}
-          setPageSize={setPageSize}
-          getState={() => ({
-            pagination: { pageIndex, pageSize }
-          })}
-          initialPageSize={10}
-        />
-      </Box>
+    <Paper elevation={0} sx={{ p: { xs: 1, md: 0 } }}>
+      <ReactTable data={rows} columns={columns} loading={loading} filters={filters} />
     </Paper>
   );
 };
