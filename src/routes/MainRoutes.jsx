@@ -30,6 +30,7 @@ import ExamResultTable from 'pages/Parent/Results/ExamResultTable';
 import ExamsView from 'pages/Parent/grades/ExamsView';
 import GradesView from 'pages/Parent/grades/GradesView';
 import ComingSoon from 'pages/maintenance/coming-soon/comingSoon';
+import StudentTimeTable from 'pages/Parent/TimeTable/ViewTimeTable';
 const AppChat = Loadable(lazy(() => import('pages/apps/chat')));
 const AppCalendar = Loadable(lazy(() => import('pages/apps/calendar')));
 
@@ -205,6 +206,15 @@ const MainRoutes = {
             {
               path: 'results',
               element: <ExamResultTable />
+            }
+          ]
+        },
+          {
+          path: 'timetable',
+          children: [
+            {
+              path: 'view',
+              element: <StudentTimeTable />
             }
           ]
         },
