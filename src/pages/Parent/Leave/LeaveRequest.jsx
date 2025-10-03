@@ -20,6 +20,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { getLeaveHistory, leaveRequest, UpdateLeaveRequest } from 'api/leave';
 import { enqueueSnackbar } from 'notistack';
+import DocumentUpload from 'components/DocumentUpload';
 
 export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'create',onSuccess }) => {
   const [leaveType, setLeaveType] = useState('');
@@ -27,8 +28,20 @@ export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'crea
   const [toDate, setToDate] = useState(null);
   const [description, setDescription] = useState('');
   const [leaveDuration, setLeaveDuration] = useState('');
-  const [file, setFile] = useState(null);
+  // uploaded document url + name (optional)
+  const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [attachmentName, setAttachmentName] = useState('');
   const [errors, setErrors] = useState({});
+
+  // Half-day helper
+  const isHalfDay = leaveDuration === 'HALFDAYMORNING' || leaveDuration === 'HALFDAYEVENING';
+
+  // Sync end date with start date for half-day
+  useEffect(() => {
+    if (isHalfDay && fromDate) {
+      setToDate(fromDate);
+    }
+  }, [isHalfDay, fromDate]);
 
   useEffect(() => {
     if (open && mode === 'edit' && initialData) {
@@ -41,6 +54,16 @@ export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'crea
 
       setFromDate(from ? dayjs(from) : null);
       setToDate(to ? dayjs(to) : null);
+
+      // Prefill attachment when editing
+      const att = initialData.attachment || initialData.documentUrl || initialData.attachmentUrl || '';
+      if (att) {
+        setAttachmentUrl(att);
+        setAttachmentName(att.split('/').pop());
+      } else {
+        setAttachmentUrl('');
+        setAttachmentName('');
+      }
     }
 
     if (open) setErrors({});
@@ -68,7 +91,8 @@ export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'crea
       reason: description,
       startDate: fromDate?.format('YYYY-MM-DD'),
       endDate: toDate?.format('YYYY-MM-DD'),
-      leaveDuration
+      leaveDuration,
+      attachment: attachmentUrl || undefined
     };
 
     try {
@@ -134,9 +158,10 @@ export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'crea
               />
               <DatePicker
                 minDate={fromDate || dayjs()}
-                label="To Date"
+                label={isHalfDay ? 'To Date (auto)' : 'To Date'}
                 value={toDate}
-                onChange={(newValue) => setToDate(newValue)}
+                disabled={isHalfDay}
+                onChange={(newValue) => !isHalfDay && setToDate(newValue)}
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -161,13 +186,20 @@ export const LeaveRequest = ({ open, handleClose, initialData = {}, mode = 'crea
               helperText={errors.description || 'Enter reason or additional details about the leave...'}
             />
 
-            <TextField
-              type="file"
-              fullWidth
-              onChange={(e) => setFile(e.target.files[0])}
-              inputProps={{ accept: '.pdf,.jpg,.png,.jpeg' }}
-              helperText="Attach a supporting document (not sent to server)"
-            />
+            {/* Document upload */}
+            <Stack direction="row" spacing={1} alignItems="center">
+              <DocumentUpload
+                fetchUrl={(url, file) => {
+                  setAttachmentUrl(url);
+                  setAttachmentName(file?.name || url.split('/').pop());
+                }}
+              />
+              {attachmentUrl && (
+                <Button size="small" href={attachmentUrl} target="_blank" rel="noopener noreferrer">
+                  {attachmentName || 'View Document'}
+                </Button>
+              )}
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>

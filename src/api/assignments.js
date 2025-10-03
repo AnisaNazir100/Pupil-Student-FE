@@ -1,14 +1,9 @@
 import axiosServices from 'utils/axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-export const FetchAllAssignments = async (page = 1, take = '25', searchQuery = '', sortOrder = 'asc', status='') => {
+export const FetchAllAssignments = async (  sortOrder = 'asc', status='') => {
   try {
-    let api = `/assignments?page=${page}&take=${take}&sortOrder=${sortOrder}&status=${status}`;
-
-    if (searchQuery) {
-      api += `&searchQuery=${encodeURIComponent(searchQuery)}`;
-    }
-
+    let api = `/assignments?&sortOrder=${sortOrder}&status=${status}`;
     const data = await axiosServices.get(api);
     return data.data;
   } catch (e) {
