@@ -308,6 +308,23 @@ function DesktopTimeTable({
                   </Box>
 
                   {isTodayTab && (
+                    <>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          bottom: 0,
+                          left: nowLeftPx,
+                          borderLeft: "2px dotted",
+                          borderColor: "primary.main",
+                          pointerEvents: "none",
+                          zIndex: 2,
+                        }}
+                      />
+                    </>
+                  )}
+
+                  {isTodayTab && (
                     <Typography
                       variant="caption"
                       sx={{
@@ -356,6 +373,21 @@ function DesktopTimeTable({
                           }}
                         />
                       ))}
+
+                      {isTodayTab && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            bottom: 0,
+                            left: nowLeftPx,
+                            borderLeft: "2px dotted",
+                            borderColor: "primary.main",
+                            pointerEvents: "none",
+                            zIndex: 3,
+                          }}
+                        />
+                      )}
 
                       {rowItems.map((it) => {
                         const left = toLeftPx(it.from);
