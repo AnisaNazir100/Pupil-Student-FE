@@ -54,8 +54,8 @@ const Assignments = () => {
     setLoading(true);
     try {
       const status = activeTab === 'ongoing' ? 'ongoing' : 'completed';
-      const response = await FetchAllAssignments(pageIndex + 1, pageSize, debouncedSearchText.trim(), 'asc', status);
-      let fetchedAssignments = response?.data?.data || [];
+      const response = await FetchAllAssignments( 'asc', status);
+      let fetchedAssignments = response?.data || [];
       if (debouncedSearchText.trim()) {
         fetchedAssignments = fetchedAssignments.filter((assignment) => {
           const lowerSearch = debouncedSearchText.toLowerCase();
