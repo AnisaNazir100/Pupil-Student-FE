@@ -264,7 +264,7 @@ function DesktopTimeTable({
                             position: "absolute",
                             top: 0,
                             bottom: 0,
-                            borderLeft: "2px dashed",
+                            borderLeft: "1px dashed",
                             borderColor: "divider",
                             opacity: 0.7,
                           }}
@@ -285,46 +285,44 @@ function DesktopTimeTable({
                       </Box>
                     ))}
                   </Box>
-                <Box
-                  sx={{
-                    position: "relative",
-                    height: 14,
-                    borderRadius: 999,
-                    bgcolor: "grey.200",
-                    overflow: "hidden",
-                  }}
-                >
-                  {isTodayTab && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        inset: 0,
-                        width: nowLeftPx,
-                        bgcolor: "primary.main",
-                        borderRadius: 999,
-                      }}
-                    />
-                  )}
-                </Box>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      height: 14,
+                      borderRadius: 999,
+                      bgcolor: "grey.200",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {isTodayTab && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          inset: 0,
+                          width: nowLeftPx,
+                          bgcolor: "primary.main",
+                          borderRadius: 999,
+                        }}
+                      />
+                    )}
+                  </Box>
 
-                {/* current time pointer (header) */}
-                {isTodayTab && (
-                  <>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        bottom: 0,
-                        left: nowLeftPx,
-                        borderLeft: "2px dotted",
-                        borderColor: "primary.main",
-                        pointerEvents: "none",
-                        zIndex: 2,
-                      }}
-                    />
-                  
-                  </>
-                )}
+                  {isTodayTab && (
+                    <>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          bottom: 0,
+                          left: nowLeftPx,
+                          borderLeft: "2px dotted",
+                          borderColor: "primary.main",
+                          pointerEvents: "none",
+                          zIndex: 2,
+                        }}
+                      />
+                    </>
+                  )}
 
                   {isTodayTab && (
                     <Typography
@@ -359,21 +357,6 @@ function DesktopTimeTable({
                         borderColor: "grey.100",
                       }}
                     >
-                      {/* current time pointer (row) */}
-                      {isTodayTab && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            top: -8,
-                            bottom: 0,
-                            left: nowLeftPx,
-                            borderLeft: "2px dotted",
-                            borderColor: "primary.main",
-                            pointerEvents: "none",
-                            zIndex: 3,
-                          }}
-                        />
-                      )}
                       {rangeArray(
                         Math.ceil(startMin / 60) * 60,
                         endMin,
@@ -390,6 +373,21 @@ function DesktopTimeTable({
                           }}
                         />
                       ))}
+
+                      {isTodayTab && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            bottom: 0,
+                            left: nowLeftPx,
+                            borderLeft: "2px dotted",
+                            borderColor: "primary.main",
+                            pointerEvents: "none",
+                            zIndex: 3,
+                          }}
+                        />
+                      )}
 
                       {rowItems.map((it) => {
                         const left = toLeftPx(it.from);
