@@ -248,19 +248,16 @@ const ExamsView = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await getExaminations({
-        page: pageIndex + 1,
-        pageSize: pageSize,
+      const {data} = await getExaminations({
         sortOrder: 'asc',
         startDate: dateRange[0] ? dayjs(dateRange[0]).format('YYYY-MM-DD') : undefined,
         endDate: dateRange[1] ? dayjs(dateRange[1]).format('YYYY-MM-DD') : undefined,
-        searchQuery: searchQuery || undefined
+       
       });
-
       const mapped = (data || []).map((exam) => ({
         id: exam.id,
         name: exam.name || '-',
-        date: exam?.examDetail?.[0]?.date || null // keep raw date; format in cell
+        date: exam?.examDetail?.[0]?.date || null 
       }));
 
       setRows(mapped);
