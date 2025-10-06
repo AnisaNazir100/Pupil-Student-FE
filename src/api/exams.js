@@ -15,22 +15,18 @@ import axiosServices from 'utils/axios';
 //     }
 //   };
 
-export const getExaminations = async ({ take, page, sortOrder,  startDate, endDate, searchQuery }) => {
+export const getExaminations = async ({ sortOrder,  startDate, endDate}) => {
     try {
       const response = await axiosServices.get('/examination', {
         params: {
-          take,
-          page,
           sortOrder,
           startDate,
-          endDate,
-          searchQuery
+          endDate, 
         }
       });
   
       return {
-        data: response.data.data.data,
-        pageCount: response.data.data.meta.pageCount || 0
+        data: response.data.data,
       };
     } catch (error) {
       console.error('Error fetching examinations:', error);
@@ -40,7 +36,7 @@ export const getExaminations = async ({ take, page, sortOrder,  startDate, endDa
   export const getExamResultDetails = async (id) => {
     try {
       const response = await axiosServices.get(`/examination/${id}/result`);
-      return response.data.data.data;
+      return response.data.data;
     } catch (error) {
       console.error('Error fetching exam results:', error);
       toast.error(error.response?.data?.message || 'Failed to fetch exam results');
